@@ -1,2 +1,2 @@
-mod vm;
-use vm::Module;
+pub mod vm;
+pub use vm::Module;

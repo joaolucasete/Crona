@@ -1,15 +1,24 @@
+use std::io::Error;
+use crona::Module;
+use crona::vm::Instruction;
+
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
-    fn test_add() {
-        assert_eq!(1 + 2, 3);
+    fn create_module() -> Result<(),Error>{
+        let module = Module::from_file(&"bin_tests/add.crn".to_string())?;
+        
+        assert_eq!(module.code, vec![
+            Instruction::Const(0),
+            Instruction::Const(4),
+            Instruction::Add,
+            Instruction::Halt
+        ]);
+
+        assert_eq!(*module.jump_table.get(&0).unwrap(),0);
+        Ok(())
     }
 
-    #[test]
-    fn test_bad_add() {
-        assert_eq!(1 - 2, 3);
-    }
 }
