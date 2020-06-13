@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::io::Cursor;
 use byteorder::{LittleEndian, ReadBytesExt};
 
-// Module is a struct that stores the code of a single MOD so it can easily hot reload in the future.
+// Module store the code of a single MOD so it can easily hot reload.
 pub struct Module{
     pub code: Vec<Instruction>,
     pub data: Vec<u8>,
@@ -28,7 +28,7 @@ impl Module {
         let data_len = file.read_u32::<LittleEndian>()?;
         let code_len = file.read_u32::<LittleEndian>()?;
 
-        // Basically all the data that we need to execute a code in Crona
+        // All the data that we need to execute a code in Crona
         let mut bin_table: Vec<u8> = vec![0; table_len as usize];
         let mut bin_data: Vec<u8> = vec![0; data_len as usize];
         let mut bin_code: Vec<u8> = vec![0; code_len as usize];
