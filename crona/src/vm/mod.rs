@@ -1,4 +1,4 @@
 pub mod module;
 pub use module::Module;
-pub mod bytecode;
-pub use bytecode::Instruction;
+pub mod instruction;
+pub use instruction::Instruction;
