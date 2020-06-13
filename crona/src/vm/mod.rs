@@ -1,4 +1,5 @@
 pub mod module;
 pub use module::Module;
-pub mod instruction;
-pub use instruction::Instruction;
+pub mod process;
+pub use process::Process;
+pub use process::Instruction;
