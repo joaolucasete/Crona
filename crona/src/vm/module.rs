@@ -67,6 +67,9 @@ impl Module {
                 0 => Instruction::Halt,
                 1 => Instruction::Const(reader.read_u32::<LittleEndian>()?),
                 2 => Instruction::Add,
+                3 => Instruction::Sub,
+                4 => Instruction::Mul,
+                5 => Instruction::Div,
                 _ => return Err(Error::new(ErrorKind::Other, "Not Recognized"))
             });
         };
