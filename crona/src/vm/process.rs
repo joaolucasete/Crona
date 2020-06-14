@@ -22,7 +22,7 @@ pub enum Instruction {
 }
 
 // Bools can be treated as numbers. so it's not necessary here.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum StackValue {
     Num(u32),
     Str(String)
@@ -32,8 +32,7 @@ pub enum StackValue {
 pub struct Process {
     pub stack: Vec<StackValue>,
     module: Arc<Module>,
-    instruction_ptr: usize,
-    halted: bool
+    instruction_ptr: usize
 }
 
 impl Process {
@@ -41,8 +40,7 @@ impl Process {
         Process {
             stack: Vec::new(),
             module,
-            instruction_ptr: 0,
-            halted: false
+            instruction_ptr: 0
         }
     }
 
@@ -57,9 +55,10 @@ impl Process {
         self.stack.push(StackValue::Num(number));
     }
 
-    pub fn current(&mut self) -> Option<Instruction>{
+    pub fn next(&mut self) -> Option<Instruction>{
         if self.instruction_ptr < self.module.code.len() {
-            Some(self.module.code[self.instruction_ptr])
+            self.instruction_ptr += 1;
+            Some(self.module.code[self.instruction_ptr-1])
         }else{
             None
         }
@@ -75,8 +74,8 @@ impl Process {
             Add => operation!(self, (Num(x),Num(y)) => push Num(x+y)),
             Sub => operation!(self, (Num(x),Num(y)) => push Num(x-y)),
             Mul => operation!(self, (Num(x),Num(y)) => push Num(x*y)),
-            Div => operation!(self, (Num(x),Num(y)) => push Num(x/y)),
-            _ => None
+            Div => operation!(self, (Num(x),Num(y)) => push Num(x/y))
         };
+        None
     }
 }

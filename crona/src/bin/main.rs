@@ -1,15 +1,14 @@
-use std::io::Error;
-use crona::Module;
-use crona::Process;
-use std::sync::Arc;
+use clap::clap_app;
 
-fn main() -> Result<(),Error> {
-    let module = Arc::new(Module::from_file(&"crona/bin_tests/add.crn".to_string())?);
-    let mut process = Process::new(module.clone());
-    process.execute();
-    process.execute();
-    process.execute();
-    println!("{:?}",process.stack);
-    Ok(())
+fn main() {
+    let matches = clap_app!(CronaVM =>
+        (version: "0.0.1")
+        (author: "Chiyoku <chiyokuoni@gmail.com>")
+        (about: "Runs crona binaries")
+        (@arg INPUT: +required "Sets the input file to use")
+    ).get_matches();
+
+    let _ = matches.value_of("INPUT").unwrap();
+    
 }
 
