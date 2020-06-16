@@ -6,21 +6,17 @@ pub use error::LexicalError;
 
 macro_rules! double_token {
     ($self:ident, $pattern:pat => $first:expr; $other:expr) => {
-        match $self.first() {
-            Some($pattern) => $first,
-            _ => $other
+        if let Some($pattern) = $self.first() {
+            $first
+        } else {
+            $other
         }
     }
 }
 
+
 #[derive(Debug, PartialEq)]
-pub enum TokenKind {
-    // Multiple Symbol Token
-    Number,
-    Ident,
-    Str,
-    
-    // One Symbol Token
+pub enum BinKind {
     Add,
     Mul,
     Sub,
@@ -29,6 +25,25 @@ pub enum TokenKind {
     Or,
     Xor,
     Equal,
+    AndCmp,
+    OrCmp,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum TokenKind {
+    // Multiple Symbol Token
+    BinToken(BinKind),
+    Number(u32),
+    Ident(u32),
+    Str,
+    // One Symbol Token
+    LBraces,
+    RBraces,
+    LPar,
+    RPar,
+    LCurly,
+    RCurly,
+    Colon,
 
     // Two Symbol Token
     AddEqual,
@@ -36,10 +51,9 @@ pub enum TokenKind {
     SubEqual,
     DivEqual,
     Assign,
+    Short,
 
     // Keywords
-    AndCmp,
-    OrCmp,
     Mut,
     Let,
     If,
@@ -87,13 +101,7 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    pub fn from_file(file_name: &'a String) -> Result<Scanner<'a>, Error> {
-        Ok(Scanner {
-            initial: 0,
-            text: file_name.chars(),
-            prev: '\0'
-        })
-    }
+    // TODO: Read from file
 
     pub fn next(&mut self) -> Option<char> {
         let actual = self.text.nth(0)?;
@@ -109,13 +117,16 @@ impl<'a> Scanner<'a> {
         self.initial - self.text.as_str().len()
     }
 
-    pub fn digest(&mut self, predicative: impl Fn(char) -> bool ){
+    pub fn digest_number(&mut self, chr: char) -> TokenKind{
+        use TokenKind::*;
+        let mut num = chr as u32 - 48;
         while let Some(chr) = self.first() {
-            if !predicative(chr) {
-                break;
-            }
+            if !is_digit(chr) {break}
+            num *= 10;
+            num += chr as u32 - 48;
             self.next();
         }
+        Number(num)
     }
 
     pub fn digest_identifier(&mut self, chr: char) -> TokenKind{
@@ -131,8 +142,8 @@ impl<'a> Scanner<'a> {
         }
 
         match id.as_str() {
-            "and" => AndCmp,
-            "or" => OrCmp,
+            "and" => BinToken(BinKind::AndCmp),
+            "or" => BinToken(BinKind::OrCmp),
             "mut" => Mut,
             "let" => Let,
             "if" => If,
@@ -143,41 +154,42 @@ impl<'a> Scanner<'a> {
             "send" => Send,
             "receive" => Receive,
             "fn" => Fn,
-            _ => Ident
+            _ => Ident(0)
         }
     }
 
     pub fn lex(&mut self) -> Result<TokenKind, LexicalError> {
         use TokenKind::*;
+        use BinKind::*;
         match self.next() {
             Some(actual) => {
                 let token = match actual {
                     // It matches just integers without dot
-                    actual if is_digit(actual) => {
-                        self.digest(is_digit);
-                        Number
-                    },
-
+                    actual if is_digit(actual) => {self.digest_number(actual)},
                     // It matches keywords and identifier.
-                    actual if is_valid_ident_start(actual) => {
-                        self.digest_identifier(actual)
-                    },
-
+                    actual if is_valid_ident_start(actual) => {self.digest_identifier(actual)},
                     // TODO: Interpolation
                     '"' => {
-                        self.digest(|s| s != '"');
+                        //self.digest(|s| s != '"');
                         self.next();
                         Str
                     },
 
-                    '=' => double_token! (self, '=' => Assign; Equal),
-                    '+' => double_token! (self, '=' => AddEqual; Add),
-                    '-' => double_token! (self, '=' => SubEqual; Sub),
-                    '*' => double_token! (self, '=' => MulEqual; Mul),
-                    '/' => double_token! (self, '=' => DivEqual; Div),
-                    '&' => And,
-                    '|' => Or,
-                    '^' => Xor,
+                    '=' => double_token! (self, '=' => BinToken(Equal); Assign),
+                    '+' => double_token! (self, '=' => AddEqual; BinToken(Add)),
+                    '-' => double_token! (self, '=' => SubEqual; BinToken(Sub)),
+                    '*' => double_token! (self, '=' => MulEqual; BinToken(Mul)),
+                    '/' => double_token! (self, '=' => DivEqual; BinToken(Div)),
+                    ':' => double_token! (self, '=' => Short; Colon),
+                    '&' => BinToken(And),
+                    '|' => BinToken(Or),
+                    '^' => BinToken(Xor),
+                    '(' => LPar,
+                    ')' => RPar,
+                    '[' => LBraces,
+                    ']' => RBraces,
+                    '{' => LCurly,
+                    '}' => RCurly,
                     _ => {EndOfFile}
                 };
                 Ok(token)
