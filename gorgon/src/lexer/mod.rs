@@ -1,8 +1,14 @@
-use std::io::Error;
+pub mod error;
+pub mod span;
+pub use span::Span;
 use std::str::Chars;
+use error::LexicalError;
 
-mod error;
-pub use error::LexicalError;
+#[derive(Debug)]
+pub struct Token{
+    pub kind: TokenKind,
+    pub span: Span
+}
 
 macro_rules! double_token {
     ($self:ident, $pattern:pat => $first:expr; $other:expr) => {
@@ -13,7 +19,6 @@ macro_rules! double_token {
         }
     }
 }
-
 
 #[derive(Debug, PartialEq)]
 pub enum BinKind {
@@ -27,14 +32,18 @@ pub enum BinKind {
     Equal,
     AndCmp,
     OrCmp,
+    Less,
+    Greater,
+    LessEqual,
+    GreaterEqual
 }
 
 #[derive(Debug, PartialEq)]
 pub enum TokenKind {
     // Multiple Symbol Token
     BinToken(BinKind),
-    Number(u32),
-    Ident(u32),
+    Number,
+    Ident,
     Str,
     // One Symbol Token
     LBraces,
@@ -44,6 +53,7 @@ pub enum TokenKind {
     LCurly,
     RCurly,
     Colon,
+    Dot,
 
     // Two Symbol Token
     AddEqual,
@@ -64,11 +74,15 @@ pub enum TokenKind {
     Send,
     Receive,
     Fn,
+    End,
+    Do,
 
+    Comment,
+    Whitespace,
     EndOfFile,
 }
 
-pub struct Scanner<'a> {
+pub struct Lexer<'a> {
     initial: usize,
     text: Chars<'a>,
     prev: char
@@ -92,9 +106,9 @@ fn is_valid_ident(character: char) -> bool {
     }
 }
 
-impl<'a> Scanner<'a> {
-    pub fn new(text: &'a String) -> Scanner<'a> {
-        Scanner {
+impl<'a> Lexer<'a> {
+    pub fn new(text: &'a String) -> Lexer<'a> {
+        Lexer {
             initial: text.len(),
             text: text.chars(),
             prev: '\0'
@@ -102,7 +116,6 @@ impl<'a> Scanner<'a> {
     }
 
     // TODO: Read from file
-
     pub fn next(&mut self) -> Option<char> {
         let actual = self.text.nth(0)?;
         self.prev = actual;
@@ -117,18 +130,6 @@ impl<'a> Scanner<'a> {
         self.initial - self.text.as_str().len()
     }
 
-    pub fn digest_number(&mut self, chr: char) -> TokenKind{
-        use TokenKind::*;
-        let mut num = chr as u32 - 48;
-        while let Some(chr) = self.first() {
-            if !is_digit(chr) {break}
-            num *= 10;
-            num += chr as u32 - 48;
-            self.next();
-        }
-        Number(num)
-    }
-
     pub fn digest_identifier(&mut self, chr: char) -> TokenKind{
         use TokenKind::*;
 
@@ -136,7 +137,7 @@ impl<'a> Scanner<'a> {
         id.push(chr);
         
         while let Some(chr) = self.first() {
-            if !is_valid_ident_start(chr) {break}
+            if !is_valid_ident(chr) {break}
             id.push(chr);
             self.next();
         }
@@ -154,32 +155,51 @@ impl<'a> Scanner<'a> {
             "send" => Send,
             "receive" => Receive,
             "fn" => Fn,
-            _ => Ident(0)
+            "end" => End,
+            "do" => Do,
+            _ => Ident
         }
     }
 
-    pub fn lex(&mut self) -> Result<TokenKind, LexicalError> {
+    pub fn digest(&mut self, predicative: impl Fn(char) -> bool ){
+        while let Some(chr) = self.first() {
+            if !predicative(chr) {
+                break;
+            }
+            self.next();
+        }
+    }
+
+    fn next_token_kind(&mut self) -> Result<TokenKind, LexicalError> {
         use TokenKind::*;
         use BinKind::*;
         match self.next() {
             Some(actual) => {
                 let token = match actual {
+
+                    '#' => {
+                        self.digest(|x| x != '\n');
+                        Comment
+                    }
+
+                    ' ' | '\t' | '\r' | '\n' => {
+                        self.digest(|a| if let ' ' | '\t' | '\r' | '\n' = a { true } else { false });
+                        Whitespace
+                    },
+
                     // It matches just integers without dot
-                    actual if is_digit(actual) => {self.digest_number(actual)},
+                    actual if is_digit(actual) => {self.digest(is_digit);Number},
                     // It matches keywords and identifier.
                     actual if is_valid_ident_start(actual) => {self.digest_identifier(actual)},
                     // TODO: Interpolation
-                    '"' => {
-                        //self.digest(|s| s != '"');
-                        self.next();
-                        Str
-                    },
-
+                    '"' => {self.digest(|x| x != '"');Str},
                     '=' => double_token! (self, '=' => BinToken(Equal); Assign),
                     '+' => double_token! (self, '=' => AddEqual; BinToken(Add)),
                     '-' => double_token! (self, '=' => SubEqual; BinToken(Sub)),
                     '*' => double_token! (self, '=' => MulEqual; BinToken(Mul)),
                     '/' => double_token! (self, '=' => DivEqual; BinToken(Div)),
+                    '<' => double_token! (self, '=' => BinToken(LessEqual); BinToken(Less)),
+                    '>' => double_token! (self, '=' => BinToken(GreaterEqual); BinToken(Greater)),
                     ':' => double_token! (self, '=' => Short; Colon),
                     '&' => BinToken(And),
                     '|' => BinToken(Or),
@@ -190,11 +210,22 @@ impl<'a> Scanner<'a> {
                     ']' => RBraces,
                     '{' => LCurly,
                     '}' => RCurly,
+                    '.' => Dot,
                     _ => {EndOfFile}
                 };
                 Ok(token)
             }
             None => Ok(EndOfFile)
+        }
+    }
+    
+    pub fn next_token(&mut self) -> Result<Token, LexicalError> {
+        use TokenKind::*;
+        loop {
+            let start = self.consumed_length();
+            let token = self.next_token_kind()?;
+            if let Comment | Whitespace = token {continue;}
+            return Ok( Token { kind: token, span: Span{ start, end: self.consumed_length()}})
         }
     }
 }
