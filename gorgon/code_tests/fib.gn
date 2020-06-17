@@ -1,0 +1,7 @@
+fn fib(x Int) Int do 
+    if x > 1 do
+        fib(x-1) + fib(x-2)
+    else
+        x
+    end
+end
