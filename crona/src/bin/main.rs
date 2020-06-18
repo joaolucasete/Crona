@@ -6,9 +6,8 @@ fn main() {
         (author: "Chiyoku <chiyokuoni@gmail.com>")
         (about: "Runs crona binaries")
         (@arg INPUT: +required "Sets the input file to use")
-    ).get_matches();
+    )
+    .get_matches();
 
     let _ = matches.value_of("INPUT").unwrap();
-    
 }
-

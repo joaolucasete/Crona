@@ -6,7 +6,7 @@ macro_rules! operation {
 
     (RULE $self:ident $pattern:pat $(,$other:pat)*) => {
         ($self.pop()
-            $(,operation!(RULE $self $other))*    
+            $(,operation!(RULE $self $other))*
         )
     };
 

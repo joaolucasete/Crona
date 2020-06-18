@@ -1,72 +1,73 @@
-use crate::Module;
-use std::sync::Arc;
-use std::convert::TryInto;
 use crate::operation;
+use crate::Module;
+use std::convert::TryInto;
+use std::sync::Arc;
 
 /*
- * This module represents a single process that in theory is a 
+ * This module represents a single process that in theory is a
  * isolated unit of green thread that will run in the VM instance to achieve
  * the max usage of the host machine.
 */
 
-
 // The instructions that the machine will execute
-#[derive(Debug,PartialEq,Copy,Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Instruction {
     Halt,
     Const(u32),
     Add,
     Sub,
     Mul,
-    Div
+    Div,
 }
 
 // Bools can be treated as numbers. so it's not necessary here.
 #[derive(Debug, PartialEq)]
 pub enum StackValue {
     Num(u32),
-    Str(String)
+    Str(String),
 }
 
 // The struct Process hold the state of a single isolated green thread.
 pub struct Process {
     pub stack: Vec<StackValue>,
     module: Arc<Module>,
-    instruction_ptr: usize
+    instruction_ptr: usize,
 }
 
 impl Process {
-    pub fn new(module: Arc<Module>) -> Process{
+    pub fn new(module: Arc<Module>) -> Process {
         Process {
             stack: Vec::new(),
             module,
-            instruction_ptr: 0
+            instruction_ptr: 0,
         }
     }
 
-    pub fn pop(&mut self) -> StackValue{
+    pub fn pop(&mut self) -> StackValue {
         self.stack.pop().expect("Cannot pop a empty stack!")
     }
 
     // TODO: Improve the error handling of this part.
-    pub fn push_u32_from_data(&mut self, place: u32){
-        let raw_bytes: [u8;4] = self.module.data[place as usize..place as usize+4].try_into().unwrap();
+    pub fn push_u32_from_data(&mut self, place: u32) {
+        let raw_bytes: [u8; 4] = self.module.data[place as usize..place as usize + 4]
+            .try_into()
+            .unwrap();
         let number = u32::from_le_bytes(raw_bytes);
         self.stack.push(StackValue::Num(number));
     }
 
-    pub fn next(&mut self) -> Option<Instruction>{
+    pub fn next(&mut self) -> Option<Instruction> {
         if self.instruction_ptr < self.module.code.len() {
             self.instruction_ptr += 1;
-            Some(self.module.code[self.instruction_ptr-1])
-        }else{
+            Some(self.module.code[self.instruction_ptr - 1])
+        } else {
             None
         }
     }
 
-    pub fn execute(&mut self) -> Option<u8>{
-        use StackValue::*;
+    pub fn execute(&mut self) -> Option<u8> {
         use Instruction::*;
+        use StackValue::*;
 
         match self.next()? {
             Halt => return Some(0),
@@ -74,7 +75,7 @@ impl Process {
             Add => operation!(self, (Num(x),Num(y)) => push Num(x+y)),
             Sub => operation!(self, (Num(x),Num(y)) => push Num(x-y)),
             Mul => operation!(self, (Num(x),Num(y)) => push Num(x*y)),
-            Div => operation!(self, (Num(x),Num(y)) => push Num(x/y))
+            Div => operation!(self, (Num(x),Num(y)) => push Num(x/y)),
         };
         None
     }

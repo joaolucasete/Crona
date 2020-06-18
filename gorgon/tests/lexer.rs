@@ -7,8 +7,8 @@ mod tests {
 
     #[test]
     fn scan_arith() -> Result<(), LexicalError> {
-        use gorgon::TokenKind::*;
         use gorgon::BinKind::*;
+        use gorgon::TokenKind::*;
         let input = &"123+456*78".to_string();
         let mut scanner = Lexer::new(input);
         assert_eq!(scanner.next_token()?.kind, Number);
@@ -21,8 +21,8 @@ mod tests {
 
     #[test]
     fn scan_fib() -> Result<(), LexicalError> {
-        use gorgon::TokenKind::*;
         use gorgon::BinKind::*;
+        use gorgon::TokenKind::*;
 
         let code = "#Testando comentario
         fn fib(x Int) Int do 
@@ -31,7 +31,8 @@ mod tests {
             else
                 x
             end
-        end".to_string();
+        end"
+        .to_string();
 
         let mut scanner = Lexer::new(&code);
         assert_eq!(scanner.next_token()?.kind, Fn);
@@ -47,6 +48,23 @@ mod tests {
         assert_eq!(scanner.next_token()?.kind, BinToken(Greater));
         assert_eq!(scanner.next_token()?.kind, Number);
         assert_eq!(scanner.next_token()?.kind, Do);
+        assert_eq!(scanner.next_token()?.kind, Ident);
+        assert_eq!(scanner.next_token()?.kind, LPar);
+        assert_eq!(scanner.next_token()?.kind, Ident);
+        assert_eq!(scanner.next_token()?.kind, BinToken(Sub));
+        assert_eq!(scanner.next_token()?.kind, Number);
+        assert_eq!(scanner.next_token()?.kind, RPar);
+        assert_eq!(scanner.next_token()?.kind, BinToken(Add));
+        assert_eq!(scanner.next_token()?.kind, Ident);
+        assert_eq!(scanner.next_token()?.kind, LPar);
+        assert_eq!(scanner.next_token()?.kind, Ident);
+        assert_eq!(scanner.next_token()?.kind, BinToken(Sub));
+        assert_eq!(scanner.next_token()?.kind, Number);
+        assert_eq!(scanner.next_token()?.kind, RPar);
+        assert_eq!(scanner.next_token()?.kind, Else);
+        assert_eq!(scanner.next_token()?.kind, Ident);
+        assert_eq!(scanner.next_token()?.kind, End);
+        assert_eq!(scanner.next_token()?.kind, End);
         Ok(())
     }
 }
