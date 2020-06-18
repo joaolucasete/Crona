@@ -37,7 +37,7 @@ impl<'a> Parser<'a> {
         match self.next {
             Some(Token { kind, .. }) => match kind {
                 TokenKind::Number => {
-                    self.advance();
+                    self.advance()?;
                     return Ok(
                         Node::new(
                             NodeKind::Number,
@@ -55,7 +55,7 @@ impl<'a> Parser<'a> {
     pub fn expr(&mut self, priority: u8) -> Result<Node, CompilerError> {
         use TokenKind::*;
 
-        if(priority == 6){
+        if priority == 6 {
             return self.factor();
         } 
 

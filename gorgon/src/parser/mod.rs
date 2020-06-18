@@ -56,7 +56,7 @@ impl<'a> Parser<'a> {
             if kind == check_kind {
                 Ok(next)
             } else {
-                Err(self.unexpected(check_kind))
+                Err(self.unexpected())
             }
         } else {
             Err(self.unexpected_eof())
