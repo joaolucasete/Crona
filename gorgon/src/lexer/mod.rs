@@ -1,18 +1,28 @@
-pub mod error;
 pub mod span;
 pub use span::Span;
 use std::str::Chars;
-use error::LexicalError;
+use crate::CompilerError;
 
-#[derive(Debug)]
+/**
+  * This module breaks a code in some Tokens with a Span 
+  * A span is the location of the token in the code
+  * So the code "123" retornar a Token with
+  * TokenType = Number
+  * Span = 0..3
+  */
+
+#[derive(Debug, Copy, Clone)]
 pub struct Token{
     pub kind: TokenKind,
     pub span: Span
 }
 
+
+//This is a simple macro to make easier to write some conditions with two characters
 macro_rules! double_token {
     ($self:ident, $pattern:pat => $first:expr; $other:expr) => {
         if let Some($pattern) = $self.first() {
+            $self.next();
             $first
         } else {
             $other
@@ -20,7 +30,7 @@ macro_rules! double_token {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum BinKind {
     Add,
     Mul,
@@ -38,7 +48,7 @@ pub enum BinKind {
     GreaterEqual
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum TokenKind {
     // Multiple Symbol Token
     BinToken(BinKind),
@@ -170,7 +180,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn next_token_kind(&mut self) -> Result<TokenKind, LexicalError> {
+    fn next_token_kind(&mut self) -> Result<TokenKind, CompilerError> {
         use TokenKind::*;
         use BinKind::*;
         match self.next() {
@@ -192,7 +202,15 @@ impl<'a> Lexer<'a> {
                     // It matches keywords and identifier.
                     actual if is_valid_ident_start(actual) => {self.digest_identifier(actual)},
                     // TODO: Interpolation
-                    '"' => {self.digest(|x| x != '"');Str},
+                    '"' => {
+                        self.digest(|x| x != '"');
+                        if let Some('"') = self.first() {
+                            self.next();
+                            Str
+                        }else{
+                            return Err(CompilerError::UnfinishedString)
+                        }
+                    },
                     '=' => double_token! (self, '=' => BinToken(Equal); Assign),
                     '+' => double_token! (self, '=' => AddEqual; BinToken(Add)),
                     '-' => double_token! (self, '=' => SubEqual; BinToken(Sub)),
@@ -219,7 +237,7 @@ impl<'a> Lexer<'a> {
         }
     }
     
-    pub fn next_token(&mut self) -> Result<Token, LexicalError> {
+    pub fn next_token(&mut self) -> Result<Token, CompilerError> {
         use TokenKind::*;
         loop {
             let start = self.consumed_length();
