@@ -4,5 +4,6 @@ use crate::Token;
 pub enum CompilerError {
     UnfinishedString,
     UnexpectedEOF,
+    NotRecognizableChar,
     UnexpectedToken(Token),
 }

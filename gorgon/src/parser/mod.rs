@@ -17,6 +17,7 @@ pub enum NodeKind {
     Name(Vec<Span>),
     Call(Box<Node>, Vec<Node>),
     Unary(Box<Node>),
+    Type(Box<Node>,Box<Node>),
     Number,
     Str,
     None,

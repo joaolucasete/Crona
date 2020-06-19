@@ -4,6 +4,7 @@ use crate::Node;
 use crate::Parser;
 use crate::Token;
 use crate::TokenKind;
+use crate::BinKind;
 use std::boxed::Box;
 
 // This module matches some common values for all the parts of the compiler
@@ -55,5 +56,17 @@ impl<'a> Parser<'a> {
 
     pub fn types(&mut self) -> Result<Node, CompilerError> {
         let name = self.name()?;
+        if self.check_next(TokenKind::BinToken(BinKind::Less)){
+            self.advance()?;
+            let generic = self.types()?; 
+            self.eat(TokenKind::BinToken(BinKind::Greater))?;
+            let mixed_span = Parser::mix_span(name.span, self.actual_span());
+            Ok(
+                Node::new(NodeKind::Type(Box::new(name), Box::new(generic)), 
+                mixed_span
+            ))
+        }else{
+            Ok(name)
+        }
     }
 }

@@ -73,7 +73,6 @@ impl<'a> Parser<'a> {
                 },
                 TokenKind::BinToken(BinKind::Sub) => {
                     self.advance()?;
-
                     Ok(Node::new(
                         NodeKind::Unary(Box::new(self.factor(false)?)),
                         self.actual_span()
