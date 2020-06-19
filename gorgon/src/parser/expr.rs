@@ -7,14 +7,14 @@ use crate::Token;
 use crate::TokenKind;
 use std::boxed::Box;
 
-// All the non associative operations have to be isolated to not cause 
+// All the non associative operations have to be isolated to not cause
 // Strange behaviour. So this function map all the non associative operations
 
-fn not_associative(token: BinKind) -> bool{
+fn not_associative(token: BinKind) -> bool {
     use BinKind::*;
     match token {
         Diff | Equal | Less | Greater | GreaterEqual | LessEqual => true,
-        _ => false
+        _ => false,
     }
 }
 
@@ -47,37 +47,32 @@ fn get_priority(token: BinKind) -> u8 {
 
 // This module matches all the binary expressions
 impl<'a> Parser<'a> {
-    fn factor(&mut self,accept_string: bool) -> Result<Node, CompilerError> {
+    fn factor(&mut self, accept_string: bool) -> Result<Node, CompilerError> {
         match self.next {
             Some(Token { kind, .. }) => match kind {
                 TokenKind::Number => {
                     self.advance()?;
                     Ok(Node::new(NodeKind::Number, self.actual_span()))
-                },
-                TokenKind::Ident => {
-                    self.call()
-                },
+                }
+                TokenKind::Ident => self.call(),
                 TokenKind::LPar => {
                     self.advance()?;
                     let expr = self.expr(1)?;
                     self.eat(TokenKind::RPar)?;
                     Ok(expr)
-                },
+                }
                 TokenKind::Str => {
                     if accept_string {
                         self.advance()?;
                         Ok(Node::new(NodeKind::Str, self.actual_span()))
-                    }else{
+                    } else {
                         Err(self.unexpected())
                     }
-                },
+                }
                 TokenKind::BinToken(BinKind::Sub) => {
                     self.advance()?;
-                    Ok(Node::new(
-                        NodeKind::Unary(Box::new(self.factor(false)?)),
-                        self.actual_span()
-                    ))
-                },
+                    Ok(Node::new(NodeKind::Unary(Box::new(self.factor(false)?)), self.actual_span()))
+                }
                 _ => Err(self.unexpected()),
             },
             _ => Err(self.unexpected()),

@@ -9,7 +9,8 @@ use std::boxed::Box;
 
 mod error;
 mod expr;
-mod vals;
+mod sttds;
+mod value;
 
 #[derive(Debug)]
 pub enum NodeKind {
@@ -17,7 +18,10 @@ pub enum NodeKind {
     Name(Vec<Span>),
     Call(Box<Node>, Vec<Node>),
     Unary(Box<Node>),
-    Type(Box<Node>,Box<Node>),
+    Type(Box<Node>, Box<Node>),
+    VarDecl(bool, Box<Node>, Box<Node>),
+    VarSet(TokenKind, Box<Node>, Box<Node>),
+    Compound(Vec<Node>),
     Number,
     Str,
     None,
@@ -69,14 +73,14 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn check_next(&mut self,check_kind: TokenKind) -> bool {
+    pub fn check_next(&mut self, check_kind: TokenKind) -> bool {
         if let Some(Token { kind, .. }) = self.next {
             if kind == check_kind {
                 true
-            } else{
+            } else {
                 false
             }
-        }else{
+        } else {
             false
         }
     }
