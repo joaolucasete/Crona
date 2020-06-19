@@ -44,6 +44,12 @@ impl<'a> Parser<'a> {
                 },
                 TokenKind::Ident => {
                     self.call()
+                },
+                TokenKind::LPar => {
+                    self.advance()?;
+                    let expr = self.expr(1)?;
+                    self.eat(TokenKind::RPar);
+                    Ok(expr)
                 }
                 _ => Err(self.unexpected()),
             },

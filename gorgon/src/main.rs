@@ -2,9 +2,10 @@ use gorgon::Lexer;
 use gorgon::Parser;
 
 fn main() {
-    let code = "a.b(b)".to_string();
+    let code = "(1 + 2) * 3".to_string();
 
     let scanner = Lexer::new(&code);
     let mut parser = Parser::new(scanner);
-    println!("{:?}", parser.parse());
+    parser.advance();
+    println!("{:?}", parser.expr(1));
 }

@@ -43,10 +43,8 @@ impl<'a> Parser<'a> {
             } else {
                 self.list()?
             };
-
             self.eat(TokenKind::RPar)?;
             let mixed_span = Parser::mix_span(name.span, self.actual_span());
-
             Ok(Node::new(NodeKind::Call(Box::new(name), args), mixed_span))
         }else {
             Ok(name)
