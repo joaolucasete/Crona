@@ -7,10 +7,8 @@ use crate::Token;
 use crate::TokenKind;
 use std::boxed::Box;
 
-// It matches all a bintoken and try to get his "priority"
-// the higher the priority, the lowest type of operations they'll get
-// Multiplication only gets from Factor()
-// Add gets from Multiplication that gets from Factor()
+// All the non associative operations have to be isolated to not cause 
+// Strange behaviour. So this function map all the non associative operations
 
 fn not_associative(token: BinKind) -> bool{
     use BinKind::*;
@@ -19,6 +17,11 @@ fn not_associative(token: BinKind) -> bool{
         _ => false
     }
 }
+
+// It matches all a bintoken and try to get his "priority"
+// the higher the priority, the lowest type of operations they'll get
+// Multiplication only gets from Factor()
+// Add gets from Multiplication that gets from Factor()
 
 fn get_priority(token: BinKind) -> u8 {
     use BinKind::*;
@@ -44,7 +47,7 @@ fn get_priority(token: BinKind) -> u8 {
 
 // This module matches all the binary expressions
 impl<'a> Parser<'a> {
-    fn factor(&mut self) -> Result<Node, CompilerError> {
+    fn factor(&mut self,accept_string: bool) -> Result<Node, CompilerError> {
         match self.next {
             Some(Token { kind, .. }) => match kind {
                 TokenKind::Number => {
@@ -59,7 +62,23 @@ impl<'a> Parser<'a> {
                     let expr = self.expr(1)?;
                     self.eat(TokenKind::RPar)?;
                     Ok(expr)
-                }
+                },
+                TokenKind::Str => {
+                    if accept_string {
+                        self.advance()?;
+                        Ok(Node::new(NodeKind::Str, self.actual_span()))
+                    }else{
+                        Err(self.unexpected())
+                    }
+                },
+                TokenKind::BinToken(BinKind::Sub) => {
+                    self.advance()?;
+
+                    Ok(Node::new(
+                        NodeKind::Unary(Box::new(self.factor(false)?)),
+                        self.actual_span()
+                    ))
+                },
                 _ => Err(self.unexpected()),
             },
             _ => Err(self.unexpected()),
@@ -70,7 +89,7 @@ impl<'a> Parser<'a> {
         use TokenKind::*;
 
         if priority == 6 {
-            return self.factor();
+            return self.factor(true);
         }
 
         let mut left = self.expr(priority + 1)?;

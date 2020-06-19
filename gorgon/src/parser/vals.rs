@@ -6,8 +6,9 @@ use crate::Token;
 use crate::TokenKind;
 use std::boxed::Box;
 
-// This module matches all the expr
+// This module matches some common values for all the parts of the compiler
 impl<'a> Parser<'a> {
+
     pub fn list(&mut self) -> Result<Vec<Node>, CompilerError> {
         let mut list = Vec::new();
         list.push(self.expr(1)?);
@@ -18,6 +19,7 @@ impl<'a> Parser<'a> {
         Ok(list)
     }
 
+    // Names are identifiers connected for a dot
     pub fn name(&mut self) -> Result<Node, CompilerError> {
         use TokenKind::*;
         let mut spans = Vec::new();
@@ -31,6 +33,7 @@ impl<'a> Parser<'a> {
         let mixed_span = Parser::mix_span(spans[0], spans[spans.len() - 1]);
         Ok(Node::new(NodeKind::Name(spans), mixed_span))
     }
+
 
     pub fn call(&mut self) -> Result<Node, CompilerError> {
         let name = self.name()?;
@@ -48,5 +51,9 @@ impl<'a> Parser<'a> {
         }else {
             Ok(name)
         }
+    }
+
+    pub fn types(&mut self) -> Result<Node, CompilerError> {
+        let name = self.name()?;
     }
 }

@@ -174,6 +174,7 @@ impl<'a> Lexer<'a> {
             "receive" => Receive,
             "fn" => Fn,
             "end" => End,
+            "not" => Not,
             "do" => Do,
             _ => Ident,
         }
@@ -228,7 +229,7 @@ impl<'a> Lexer<'a> {
                     '/' => double_token! (self, '=' => DivEqual; BinToken(Div)),
                     '<' => double_token! (self, '=' => BinToken(LessEqual); BinToken(Less)),
                     '>' => double_token! (self, '=' => BinToken(GreaterEqual); BinToken(Greater)),
-                    '!' => double_token! (self, '=' => BinToken(Diff); Not),
+                    '!' => double_token! (self, '=' => BinToken(Diff); return Err(CompilerError::NotRecognizableChar)),
                     ':' => double_token! (self, '=' => Short; Colon),
                     '&' => BinToken(And),
                     '|' => BinToken(Or),
