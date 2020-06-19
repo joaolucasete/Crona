@@ -12,6 +12,14 @@ use std::boxed::Box;
 // Multiplication only gets from Factor()
 // Add gets from Multiplication that gets from Factor()
 
+fn not_associative(token: BinKind) -> bool{
+    use BinKind::*;
+    match token {
+        Diff | Equal | Less | Greater | GreaterEqual | LessEqual => true,
+        _ => false
+    }
+}
+
 fn get_priority(token: BinKind) -> u8 {
     use BinKind::*;
 
@@ -74,6 +82,9 @@ impl<'a> Parser<'a> {
                 let right = self.expr(priority + 1)?;
                 let span = Parser::mix_span(left.span, right.span);
                 left = Node::new(NodeKind::Binary(Box::new(left), bintkn, Box::new(right)), span)
+            }
+            if not_associative(bintkn) {
+                break;
             }
         }
         Ok(left)
