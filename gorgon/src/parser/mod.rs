@@ -9,10 +9,13 @@ use std::boxed::Box;
 
 mod error;
 mod expr;
+mod vals;
 
 #[derive(Debug)]
 pub enum NodeKind {
     Binary(Box<Node>, BinKind, Box<Node>),
+    Name(Vec<Span>),
+    Call(Box<Node>, Vec<Node>),
     Number,
     None,
 }
@@ -63,6 +66,18 @@ impl<'a> Parser<'a> {
         }
     }
 
+    pub fn check_next(&mut self,check_kind: TokenKind) -> bool {
+        if let Some(Token { kind, .. }) = self.next {
+            if kind == check_kind {
+                true
+            } else{
+                false
+            }
+        }else{
+            false
+        }
+    }
+
     pub fn mix_span(start_span: Span, end_span: Span) -> Span {
         Span {
             start: start_span.start,
@@ -76,9 +91,8 @@ impl<'a> Parser<'a> {
             None => Span { start: 0, end: 0 },
         }
     }
-
     pub fn parse(&mut self) -> Result<Node, CompilerError> {
         self.advance()?;
-        self.expr(1)
+        self.call()
     }
 }

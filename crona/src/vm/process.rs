@@ -7,7 +7,7 @@ use std::sync::Arc;
  * This module represents a single process that in theory is a
  * isolated unit of green thread that will run in the VM instance to achieve
  * the max usage of the host machine.
-*/
+ */
 
 // The instructions that the machine will execute
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -49,9 +49,7 @@ impl Process {
 
     // TODO: Improve the error handling of this part.
     pub fn push_u32_from_data(&mut self, place: u32) {
-        let raw_bytes: [u8; 4] = self.module.data[place as usize..place as usize + 4]
-            .try_into()
-            .unwrap();
+        let raw_bytes: [u8; 4] = self.module.data[place as usize..place as usize + 4].try_into().unwrap();
         let number = u32::from_le_bytes(raw_bytes);
         self.stack.push(StackValue::Num(number));
     }

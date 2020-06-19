@@ -3,7 +3,7 @@ use crate::CompilerError;
 pub use span::Span;
 use std::str::Chars;
 
-/**
+/*
  * This module breaks a code in some Tokens with a Span
  * A span is the location of the token in the code
  * So the code "123" retornar a Token with
@@ -17,7 +17,8 @@ pub struct Token {
     pub span: Span,
 }
 
-//This is a simple macro to make easier to write some conditions with two characters
+//This is a simple macro to make easier to write some conditions with two
+// characters
 macro_rules! double_token {
     ($self:ident, $pattern:pat => $first:expr; $other:expr) => {
         if let Some($pattern) = $self.first() {
@@ -63,6 +64,7 @@ pub enum TokenKind {
     RCurly,
     Colon,
     Dot,
+    Comma,
 
     // Two Symbol Token
     AddEqual,
@@ -197,13 +199,7 @@ impl<'a> Lexer<'a> {
                     }
 
                     ' ' | '\t' | '\r' | '\n' => {
-                        self.digest(|a| {
-                            if let ' ' | '\t' | '\r' | '\n' = a {
-                                true
-                            } else {
-                                false
-                            }
-                        });
+                        self.digest(|a| if let ' ' | '\t' | '\r' | '\n' = a { true } else { false });
                         Whitespace
                     }
 
@@ -242,6 +238,7 @@ impl<'a> Lexer<'a> {
                     '{' => LCurly,
                     '}' => RCurly,
                     '.' => Dot,
+                    ',' => Comma,
                     _ => EndOfFile,
                 };
                 Ok(token)

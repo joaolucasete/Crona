@@ -20,10 +20,7 @@ impl Module {
         // 60350 is the magic number of each Crona Module.
         // if the file not contains it so it's not considered a executable file.
         if file.read_u16::<LittleEndian>()? != 60350 {
-            return Err(Error::new(
-                ErrorKind::Other,
-                "The file not contains a crona binary!",
-            ));
+            return Err(Error::new(ErrorKind::Other, "The file not contains a crona binary!"));
         }
 
         // This is the header of a Crona file.
@@ -61,7 +58,8 @@ impl Module {
         Ok(jump_table)
     }
 
-    // This function converts the binary code to a internal representation to avoid errors on run
+    // This function converts the binary code to a internal representation to avoid
+    // errors on run
     fn bin_to_instructions(bin_code: Vec<u8>) -> Result<Vec<Instruction>, Error> {
         let mut reader = Cursor::new(bin_code);
         let mut code = Vec::new();

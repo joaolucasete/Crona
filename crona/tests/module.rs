@@ -12,12 +12,7 @@ mod tests {
 
         assert_eq!(
             module.code,
-            vec![
-                Instruction::Const(0),
-                Instruction::Const(4),
-                Instruction::Add,
-                Instruction::Halt
-            ]
+            vec![Instruction::Const(0), Instruction::Const(4), Instruction::Add, Instruction::Halt]
         );
 
         assert_eq!(*module.jump_table.get(&0).unwrap(), 0);
