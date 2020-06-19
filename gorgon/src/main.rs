@@ -6,6 +6,6 @@ fn main() {
 
     let scanner = Lexer::new(&code);
     let mut parser = Parser::new(scanner);
-    parser.advance();
+    parser.advance().unwrap();
     println!("{:?}", parser.expr(1));
 }

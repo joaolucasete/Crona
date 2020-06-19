@@ -46,6 +46,7 @@ pub enum BinKind {
     Greater,
     LessEqual,
     GreaterEqual,
+    Diff,
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -73,7 +74,7 @@ pub enum TokenKind {
     DivEqual,
     Assign,
     Short,
-
+    Not,
     // Keywords
     Mut,
     Let,
@@ -227,6 +228,7 @@ impl<'a> Lexer<'a> {
                     '/' => double_token! (self, '=' => DivEqual; BinToken(Div)),
                     '<' => double_token! (self, '=' => BinToken(LessEqual); BinToken(Less)),
                     '>' => double_token! (self, '=' => BinToken(GreaterEqual); BinToken(Greater)),
+                    '!' => double_token! (self, '=' => BinToken(Diff); Not),
                     ':' => double_token! (self, '=' => Short; Colon),
                     '&' => BinToken(And),
                     '|' => BinToken(Or),

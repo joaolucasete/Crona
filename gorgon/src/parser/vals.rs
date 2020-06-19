@@ -36,8 +36,7 @@ impl<'a> Parser<'a> {
         let name = self.name()?;
 
         if self.check_next(TokenKind::LPar) {
-            self.advance();
-
+            self.advance()?;
             let args = if self.check_next(TokenKind::RPar) {
                 Vec::new()
             } else {

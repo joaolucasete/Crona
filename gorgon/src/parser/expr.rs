@@ -23,6 +23,7 @@ fn get_priority(token: BinKind) -> u8 {
         And => 3,
         Or => 3,
         Xor => 3,
+        Diff => 2,
         Equal => 2,
         Less => 2,
         Greater => 2,
@@ -48,7 +49,7 @@ impl<'a> Parser<'a> {
                 TokenKind::LPar => {
                     self.advance()?;
                     let expr = self.expr(1)?;
-                    self.eat(TokenKind::RPar);
+                    self.eat(TokenKind::RPar)?;
                     Ok(expr)
                 }
                 _ => Err(self.unexpected()),
