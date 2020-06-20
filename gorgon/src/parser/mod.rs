@@ -12,6 +12,7 @@ mod expr;
 mod function;
 mod sttds;
 mod value;
+mod if_sttd;
 
 #[derive(Debug)]
 pub enum NodeKind {
@@ -28,6 +29,11 @@ pub enum NodeKind {
         args: Vec<(Span, Box<Node>)>,
         kind: Box<Node>,
         compound: Box<Node>,
+    },
+    Condition {
+        ifsttd: (Box<Node>,Box<Node>),
+        elif: Vec<(Node, Node)>,
+        else_compound: Option<Box<Node>>,
     },
     Number,
     Str,

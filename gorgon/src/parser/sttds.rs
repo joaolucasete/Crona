@@ -60,7 +60,7 @@ impl<'a> Parser<'a> {
                         Err(self.unexpected())
                     }
                 }
-                TokenKind::Fn => self.function(),
+                TokenKind::If => self.if_statement(),
                 _ => self.expr(1),
             }
         } else {
