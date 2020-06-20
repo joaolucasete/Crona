@@ -11,6 +11,7 @@ mod error;
 mod expr;
 mod sttds;
 mod value;
+mod function;
 
 #[derive(Debug)]
 pub enum NodeKind {
@@ -22,6 +23,7 @@ pub enum NodeKind {
     VarDecl(bool, Box<Node>, Box<Node>),
     VarSet(TokenKind, Box<Node>, Box<Node>),
     Compound(Vec<Node>),
+    Function{name: Span, args: Vec<(Span,Box<Node>)>, kind: Box<Node>, compound: Box<Node>},
     Number,
     Str,
     None,
@@ -60,11 +62,11 @@ impl<'a> Parser<'a> {
         Ok(self.actual)
     }
 
-    pub fn eat(&mut self, check_kind: TokenKind) -> Result<Option<Token>, CompilerError> {
+    pub fn eat(&mut self, check_kind: TokenKind) -> Result<Token, CompilerError> {
         let next = self.advance()?;
-        if let Some(Token { kind, .. }) = next {
+        if let Some(tkn @ Token { kind, .. }) = next {
             if kind == check_kind {
-                Ok(next)
+                Ok(tkn)
             } else {
                 Err(self.unexpected())
             }
@@ -100,6 +102,6 @@ impl<'a> Parser<'a> {
     }
     pub fn parse(&mut self) -> Result<Node, CompilerError> {
         self.advance()?;
-        self.call()
+        self.statement()
     }
 }

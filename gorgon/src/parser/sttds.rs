@@ -50,7 +50,7 @@ impl<'a> Parser<'a> {
                     } else {
                         Ok(name)
                     }
-                }
+                },
                 TokenKind::Mut => {
                     let name = self.expr(1)?;
                     if let Node { kind: NodeKind::Name(_), .. } = name {
@@ -60,7 +60,8 @@ impl<'a> Parser<'a> {
                     } else {
                         Err(self.unexpected())
                     }
-                }
+                },
+                TokenKind::Fn => self.function(),
                 _ => self.expr(1),
             }
         } else {
