@@ -1,7 +1,7 @@
 use gorgon::lexer::error::LexicalError;
+use gorgon::Lexer;
 use gorgon::Node;
 use gorgon::Span;
-use gorgon::Lexer;
 
 #[cfg(test)]
 mod tests {
@@ -13,5 +13,4 @@ mod tests {
         let scanner = Lexer::new(&code);
         let mut _parser = Parser::new(scanner);
     }
-
 }

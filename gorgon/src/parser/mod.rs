@@ -9,9 +9,9 @@ use std::boxed::Box;
 
 mod error;
 mod expr;
+mod function;
 mod sttds;
 mod value;
-mod function;
 
 #[derive(Debug)]
 pub enum NodeKind {
@@ -23,7 +23,12 @@ pub enum NodeKind {
     VarDecl(bool, Box<Node>, Box<Node>),
     VarSet(TokenKind, Box<Node>, Box<Node>),
     Compound(Vec<Node>),
-    Function{name: Span, args: Vec<(Span,Box<Node>)>, kind: Box<Node>, compound: Box<Node>},
+    Function {
+        name: Span,
+        args: Vec<(Span, Box<Node>)>,
+        kind: Box<Node>,
+        compound: Box<Node>,
+    },
     Number,
     Str,
     None,
