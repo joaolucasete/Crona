@@ -2,7 +2,7 @@ pub mod span;
 use crate::CompilerError;
 pub use span::Span;
 use std::str::Chars;
-
+use std::fs;
 /*
  * This module breaks a code in some Tokens with a Span
  * A span is the location of the token in the code
@@ -119,6 +119,7 @@ fn is_valid_ident(character: char) -> bool {
 }
 
 impl<'a> Lexer<'a> {
+    
     pub fn new(text: &'a String) -> Lexer<'a> {
         Lexer {
             initial: text.len(),

@@ -16,6 +16,7 @@ mod if_sttd;
 
 #[derive(Debug)]
 pub enum NodeKind {
+    Program(Vec<Node>),
     Binary(Box<Node>, BinKind, Box<Node>),
     Name(Vec<Span>),
     Call(Box<Node>, Vec<Node>),
@@ -111,8 +112,16 @@ impl<'a> Parser<'a> {
             None => Span { start: 0, end: 0 },
         }
     }
-    pub fn parse(&mut self) -> Result<Node, CompilerError> {
+
+    pub fn parse(&mut self) -> Result<NodeKind, CompilerError> {
         self.advance()?;
-        self.statement()
+        let mut functions = Vec::new();
+        while let Some(Token{kind,..}) = self.next {
+            if(kind == TokenKind::EndOfFile){
+                break;
+            }
+            functions.push(self.function()?);
+        }
+        Ok(NodeKind::Program(functions))
     }
 }

@@ -20,14 +20,16 @@ impl<'a> Parser<'a> {
             let compound = self.compound(&|x| x == TokenKind::End || x == TokenKind::Else || x == TokenKind::Elif)?;
             elifs.push((Box::new(cond),Box::new(compound)))
         }
-        
-        let mut else_compound = if self.check_next(TokenKind::Else) {
+
+        let else_compound = if self.check_next(TokenKind::Else) {
             self.advance()?;
             Some(Box::new(self.compound(&|x| x == TokenKind::End)?))
         } else{
             None
         };
-
+        
+        self.eat(TokenKind::End)?;
+        
         Ok(Node::new(
             NodeKind::Condition {
                 ifsttd: (Box::new(cond),Box::new(compound)),
